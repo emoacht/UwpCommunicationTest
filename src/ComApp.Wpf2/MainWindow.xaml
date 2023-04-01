@@ -1,0 +1,62 @@
+﻿<Window x:Class="ComApp.Wpf2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ComApp.Wpf2"
+        mc:Ignorable="d"
+		x:Name="WindowRoot"
+		Width="500" Height="300">
+	<Grid>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="Auto"/>
+			<ColumnDefinition/>
+			<ColumnDefinition Width="80"/>
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="8"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="8"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="8"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="8"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition/>
+		</Grid.RowDefinitions>
+
+		<TextBlock Grid.Column="0" Grid.Row="0"
+				   Margin="8,0" VerticalAlignment="Center"
+				   Text="Log"/>
+		<TextBox Grid.Column="1" Grid.Row="0"
+				 IsReadOnly="True"
+				 Text="{Binding ElementName=WindowRoot, Path=LogText, Mode=OneWay}"/>
+
+		<Button Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3"
+				Content="Launch UWP"
+				Click="Launch_Click"/>
+
+		<TextBlock Grid.Column="0" Grid.Row="4"
+				   Margin="8,0" VerticalAlignment="Center"
+				   Text="FamilyName"/>
+		<TextBox Grid.Column="1" Grid.Row="4"
+				 Text="{Binding ElementName=WindowRoot, Path=FamilyName, Mode=TwoWay}"/>
+
+		<TextBlock Grid.Column="0" Grid.Row="6"
+				   Margin="8,0" VerticalAlignment="Center"
+				   Text="Outbound"/>
+		<TextBox Grid.Column="1" Grid.Row="6"
+				 Text="{Binding ElementName=WindowRoot, Path=OutboundText, Mode=TwoWay}"/>
+		<Button Grid.Column="2" Grid.Row="6"
+				Content="Send"
+                Click="Send_Click"/>
+
+		<TextBlock Grid.Column="0" Grid.Row="8"
+				   Margin="8,0" VerticalAlignment="Center"
+				   Text="Inbound"/>
+		<TextBox Grid.Column="1" Grid.Row="8"
+				 IsReadOnly="True"
+				 Text="{Binding ElementName=WindowRoot, Path=InboundText, Mode=OneWay}"/>
+	</Grid>
+</Window>
