@@ -29,8 +29,6 @@ public sealed partial class MainPage : Page
 	public static readonly DependencyProperty OutputTextProperty =
 		DependencyProperty.Register("OutputText", typeof(string), typeof(MainPage), new PropertyMetadata(string.Empty));
 
-	public string FamilyName => Package.Current.Id.FamilyName;
-
 	#endregion
 
 	public static MainPage Current { get; private set; }

@@ -45,14 +45,19 @@ public partial class MainWindow : Window
 
 	#endregion
 
+	public const string IdentityName = "dfb798de-df99-4f25-97a2-0f820b3e6c33";
+	public const string ProtocolName = "ea-pathfinder";
+
 	public MainWindow()
 	{
 		InitializeComponent();
+
+		FamilyName = PackageHelper.GetFamilyName(IdentityName);
 	}
 
 	private async void Launch_Click(object sender, RoutedEventArgs e)
 	{
-		var result = await Launcher.LaunchUriAsync(new Uri("ea-pathfinder:"));
+		var result = await Launcher.LaunchUriAsync(new Uri($"{ProtocolName}:"));
 		LogText = $"Launched: {result}";
 	}
 
