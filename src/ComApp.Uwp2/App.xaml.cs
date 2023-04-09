@@ -15,6 +15,7 @@ namespace ComApp.Uwp2;
 sealed partial class App : Application
 {
 	public static new App Current => (App)Application.Current;
+	private static MainPage _mainPage;
 
 	public App()
 	{
@@ -44,6 +45,7 @@ sealed partial class App : Application
 		{
 			if (rootFrame.Content is null)
 			{
+				rootFrame.Navigated += OnNavigated;
 				rootFrame.Navigate(typeof(MainPage), e.Arguments);
 			}
 
@@ -69,6 +71,7 @@ sealed partial class App : Application
 
 		if (rootFrame.Content is null)
 		{
+			rootFrame.Navigated += OnNavigated;
 			rootFrame.Navigate(typeof(MainPage), null);
 		}
 
@@ -78,6 +81,18 @@ sealed partial class App : Application
 	private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
 	{
 		throw new Exception($"Failed to load Page {e.SourcePageType.FullName}");
+	}
+
+	private void OnNavigated(object sender, NavigationEventArgs e)
+	{
+		if (sender is Frame rootFrame)
+		{
+			rootFrame.Navigated -= OnNavigated;
+			if (e.Content is MainPage mainPage)
+			{
+				_mainPage = mainPage;
+			}
+		}
 	}
 
 	private void OnSuspending(object sender, SuspendingEventArgs e)
@@ -106,10 +121,13 @@ sealed partial class App : Application
 
 	private async void AppServiceConnection_RequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
 	{
+		if (_mainPage is null)
+			return;
+
 		var appServiceDeferral = args.GetDeferral();
 
 		var text = args.Request.Message["Input"] as string;
-		await MainPage.Current?.SetInputAsync(text);
+		await _mainPage.SetInputAsync(text);
 
 		await args.Request.SendResponseAsync(new ValueSet
 		{

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
 using Windows.Foundation;
 using Windows.UI.Core;
 using Windows.UI.ViewManagement;
@@ -31,14 +30,11 @@ public sealed partial class MainPage : Page
 
 	#endregion
 
-	public static MainPage Current { get; private set; }
-
 	public static readonly Size DefaultSize = new(500, 320);
 
 	public MainPage()
 	{
 		this.InitializeComponent();
-		Current = this;
 
 		ApplicationView.PreferredLaunchViewSize = DefaultSize;
 		ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
