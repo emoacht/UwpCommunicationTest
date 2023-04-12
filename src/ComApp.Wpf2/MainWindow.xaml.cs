@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Windows.ApplicationModel.AppService;
@@ -45,19 +47,17 @@ public partial class MainWindow : Window
 
 	#endregion
 
-	public const string IdentityName = "dfb798de-df99-4f25-97a2-0f820b3e6c33";
-	public const string ProtocolName = "ea-pathfinder";
-
 	public MainWindow()
 	{
 		InitializeComponent();
 
-		FamilyName = PackageHelper.GetFamilyName(IdentityName);
+		FamilyName = PackageHelper.GetFamilyName(Properties.Settings.Default.IdentityName);
+		OutboundText = @$"Input:{DateTimeOffset.Now}";
 	}
 
 	private async void Launch_Click(object sender, RoutedEventArgs e)
 	{
-		var result = await Launcher.LaunchUriAsync(new Uri($"{ProtocolName}:"));
+		var result = await Launcher.LaunchUriAsync(new Uri($"{Properties.Settings.Default.ProtocolName}:"));
 		LogText = $"Launched: {result}";
 	}
 
@@ -74,16 +74,19 @@ public partial class MainWindow : Window
 			return false;
 		}
 
-		var appServiceConnection = new AppServiceConnection();
-		appServiceConnection.AppServiceName = "InProcessAppService";
-		appServiceConnection.PackageFamilyName = FamilyName; // Package.Current.Id.FamilyName;
+		var appServiceConnection = new AppServiceConnection
+		{
+			AppServiceName = Properties.Settings.Default.ServiceName,
+			PackageFamilyName = FamilyName
+		};
 
 		var status = await appServiceConnection.OpenAsync();
 		switch (status)
 		{
 			case AppServiceConnectionStatus.Success:
 				_appServiceConnection = appServiceConnection;
-				appServiceConnection.RequestReceived += AppServiceConnection_RequestReceived;
+				_appServiceConnection.RequestReceived += AppServiceConnection_RequestReceived;
+				_appServiceConnection.ServiceClosed += AppServiceConnection_ServiceClosed;
 				return true;
 
 			default:
@@ -94,7 +97,7 @@ public partial class MainWindow : Window
 
 	private void AppServiceConnection_RequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
 	{
-		var text = args.Request.Message["Output"] as string;
+		var text = GetString(args.Request.Message);
 
 		if (Dispatcher.CheckAccess())
 		{
@@ -106,18 +109,49 @@ public partial class MainWindow : Window
 		}
 	}
 
+	private void AppServiceConnection_ServiceClosed(AppServiceConnection sender, AppServiceClosedEventArgs args)
+	{
+		Dispatcher.Invoke(() => LogText = $"Closed: {args.Status}");
+
+		sender.RequestReceived -= AppServiceConnection_RequestReceived;
+		sender.ServiceClosed -= AppServiceConnection_ServiceClosed;
+		_appServiceConnection?.Dispose();
+		_appServiceConnection = null;
+	}
+
 	private async void Send_Click(object sender, RoutedEventArgs e)
 	{
 		if (!(await ConnectAsync()))
 			return;
 
-		if (_appServiceConnection is null)
-			return;
+		var requestMessage = new ValueSet();
 
-		var response = await _appServiceConnection.SendMessageAsync(new ValueSet
+		foreach (var item in OutboundText?.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>())
 		{
-			["Input"] = OutboundText,
-		});
-		LogText = response.Message?["Result"] as string;
+			var elements = item.Split(':', 2);
+			if (elements.Length >= 2)
+			{
+				requestMessage.Add(elements[0].Trim(), elements[1].Trim());
+			}
+		}
+
+		Debug.Assert(_appServiceConnection is not null);
+
+		var response = await _appServiceConnection.SendMessageAsync(requestMessage);
+
+		LogText = GetString(response.Message);
+	}
+
+	public static string GetString(ValueSet? message)
+	{
+		if (message is null)
+			return string.Empty;
+
+		var buffer = new StringBuilder();
+		foreach (var item in message)
+		{
+			buffer.AppendLine($"{item.Key}:{item.Value}");
+		}
+		return buffer.ToString().TrimEnd();
 	}
 }

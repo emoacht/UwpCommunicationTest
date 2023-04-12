@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using Windows.ApplicationModel;
@@ -55,16 +56,19 @@ public partial class MainWindow : Window
 		if (_appServiceConnection is not null)
 			return true;
 
-		var appServiceConnection = new AppServiceConnection();
-		appServiceConnection.AppServiceName = "InProcessAppService";
-		appServiceConnection.PackageFamilyName = Package.Current.Id.FamilyName;
+		var appServiceConnection = new AppServiceConnection
+		{
+			AppServiceName = "InProcessAppService",
+			PackageFamilyName = Package.Current.Id.FamilyName
+		};
 
 		var status = await appServiceConnection.OpenAsync();
 		switch (status)
 		{
 			case AppServiceConnectionStatus.Success:
 				_appServiceConnection = appServiceConnection;
-				appServiceConnection.RequestReceived += AppServiceConnection_RequestReceived;
+				_appServiceConnection.RequestReceived += AppServiceConnection_RequestReceived;
+				_appServiceConnection.ServiceClosed += AppServiceConnection_ServiceClosed;
 				return true;
 
 			default:
@@ -87,18 +91,28 @@ public partial class MainWindow : Window
 		}
 	}
 
+	private void AppServiceConnection_ServiceClosed(AppServiceConnection sender, AppServiceClosedEventArgs args)
+	{
+		Dispatcher.Invoke(() => LogText = $"Closed: {args.Status}");
+
+		sender.RequestReceived -= AppServiceConnection_RequestReceived;
+		sender.ServiceClosed -= AppServiceConnection_ServiceClosed;
+		_appServiceConnection?.Dispose();
+		_appServiceConnection = null;
+	}
+
 	private async void Send_Click(object sender, RoutedEventArgs e)
 	{
 		if (!(await ConnectAsync()))
 			return;
 
-		if (_appServiceConnection is null)
-			return;
+		Debug.Assert(_appServiceConnection is not null);
 
 		var response = await _appServiceConnection.SendMessageAsync(new ValueSet
 		{
 			["Input"] = OutboundText,
 		});
+
 		LogText = response.Message?["Result"] as string;
 	}
 }

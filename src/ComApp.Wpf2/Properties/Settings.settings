@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ComApp.Wpf2.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="IdentityName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">dfb798de-df99-4f25-97a2-0f820b3e6c33</Value>
+    </Setting>
+    <Setting Name="ProtocolName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ea-pathfinder</Value>
+    </Setting>
+    <Setting Name="ServiceName" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">InProcessAppService</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
